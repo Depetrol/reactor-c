@@ -70,7 +70,7 @@ int lf_critical_section_exit(environment_t* env);
     #include "platform/lf_zephyr_support.h"
 #elif defined(PLATFORM_NRF52)
     #include "platform/lf_nrf52_support.h"
-#elif defined(PLATFORM_STM32F4)
+#elif defined(PLATFORM_Stm32)
     #include "platform/lf_STM32f4_support.h"
 #elif defined(PLATFORM_RP2040)
     #include "platform/lf_rp2040_support.h"
