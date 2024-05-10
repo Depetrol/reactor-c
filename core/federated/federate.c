@@ -2365,8 +2365,8 @@ tag_t lf_send_next_event_tag(environment_t* env, tag_t tag, bool wait_for_reply)
     }
 
     // If time advance (TAG or PTAG) has already been granted for this tag
-    // or a larger tag, then return immediately.
-    if (lf_tag_compare(_fed.last_TAG, tag) >= 0) {
+    // or a larger tag and this federate has no downstream federate, then return immediately.
+    if (!_fed.has_downstream && lf_tag_compare(_fed.last_TAG, tag) >= 0) {
       LF_PRINT_DEBUG("Granted tag " PRINTF_TAG " because TAG or PTAG has been received.",
                      _fed.last_TAG.time - start_time, _fed.last_TAG.microstep);
       return _fed.last_TAG;
@@ -2415,6 +2415,14 @@ tag_t lf_send_next_event_tag(environment_t* env, tag_t tag, bool wait_for_reply)
                        "have no upstream federates.",
                        tag.time - start_time, tag.microstep);
         return tag;
+      }
+
+      // If time advance (TAG or PTAG) has already been granted for this tag
+      // or a larger tag, then return immediately.
+      if (lf_tag_compare(_fed.last_TAG, tag) >= 0) {
+        LF_PRINT_DEBUG("Granted tag " PRINTF_TAG " because TAG or PTAG has been received.",
+                       _fed.last_TAG.time - start_time, _fed.last_TAG.microstep);
+        return _fed.last_TAG;
       }
 
       // Wait until a TAG is received from the RTI.
