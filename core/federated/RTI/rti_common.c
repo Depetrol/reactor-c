@@ -237,6 +237,7 @@ tag_advance_grant_t tag_advance_grant_if_safe(scheduling_node_t* e) {
                                                                  // (equal is important to override any previous
                                                                  // PTAGs).
       && lf_tag_compare(t_d, e->last_granted) > 0                // The grant is not redundant.
+      && lf_tag_compare(e->next_event, e->last_granted) > 0      // The grant is not redundant.
   ) {
     // No upstream node can send events that will be received with a tag less than or equal to
     // e->next_event, so it is safe to send a TAG.
