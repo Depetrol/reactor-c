@@ -852,7 +852,7 @@ void schedule_output_reactions(environment_t* env, reaction_t* reaction, int wor
 
 /**
  * Print a usage message.
- * TODO: This is not necessary for NO_TTY
+ * TODO: This is not necessary for NO_CLI
  */
 void usage(int argc, const char* argv[]) {
   printf("\nCommand-line arguments: \n\n");
@@ -890,7 +890,7 @@ const char** default_argv = NULL;
  * Process the command-line arguments. If the command line arguments are not
  * understood, then print a usage message and return 0. Otherwise, return 1.
  * @return 1 if the arguments processed successfully, 0 otherwise.
- * TODO: Not necessary for NO_TTY
+ * TODO: Not necessary for NO_CLI
  */
 int process_args(int argc, const char* argv[]) {
   int i = 1;
@@ -1187,6 +1187,8 @@ void termination(void) {
 #endif
     lf_free_all_reactors();
 
+    lf_tracing_global_shutdown();
+
     // Free up memory associated with environment.
     // Do this last so that printed warnings don't access freed memory.
     for (int i = 0; i < num_envs; i++) {
@@ -1196,7 +1198,6 @@ void termination(void) {
     free_local_rti();
 #endif
   }
-  lf_tracing_global_shutdown();
 }
 
 index_t lf_combine_deadline_and_level(interval_t deadline, int level) {
