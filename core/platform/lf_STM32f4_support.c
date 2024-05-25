@@ -1,7 +1,4 @@
 #if defined(PLATFORM_STM32)
-/*************
- I hope this software works LOL
- ***************/
 
 #include "lf_STM32f4_support.h"
 #include "platform.h"
@@ -14,9 +11,6 @@
 
 static volatile bool _lf_sleep_interrupted = false;
 static volatile bool _lf_async_event = false;
-
-#define LF_MAX_SLEEP_NS USEC(UINT32_MAX)
-#define LF_MIN_SLEEP_NS USEC(5)
 
 // nested critical section counter
 static uint32_t _lf_num_nested_crit_sec = 0;
@@ -56,16 +50,15 @@ void _lf_initialize_clock(void) {
 
     /* This is to make the Prescaler actually work
      *  For some reason, the Prescaler only kicks in once the timer has reset once.
-     *  Thus, the current solution is to manually ret the value to a really large
+     *  Thus, the current solution is to manually set the value to a really large
      *  and force it to reset once. Its really jank but its the only way I could
      *  find to make it work
      */
     TIM5->CNT = 0xFFFFFFFE;
 }
 
-/**
- * ISR for handling timer overflow -> We increment the upper timer
- */
+
+// ISR for handling timer overflow -> We increment the upper timer
 void TIM5_IRQHandler(void) {
     if (TIM5->SR & (1 << 1)) {
         TIM5->SR &= ~(1 << 1);
@@ -73,14 +66,12 @@ void TIM5_IRQHandler(void) {
     }
 }
 
-/**
- * Write the time since boot into time variable
- */
+// Write the time since boot into time variable
 int _lf_clock_now(instant_t *t)
 {
     // Timer is cooked
     if (!t) {
-        return -1;
+        return 1;
     }
     // Get the current microseconds from TIM5
     uint32_t _lf_time_us_low = TIM5->CNT;
@@ -92,10 +83,9 @@ int _lf_clock_now(instant_t *t)
 }
 
 /**
- * Make the STM32 go honk shoo mimimi for set nanoseconds
- * I essentially stole this from the lf_nrf52 support
+ * Blocks the STM32 for set nanoseconds
  */
-int lf_sleep(interval_t sleep_duration) {
+void lf_sleep(interval_t sleep_duration) {
     instant_t target_time;
     instant_t current_time;
 
@@ -103,14 +93,10 @@ int lf_sleep(interval_t sleep_duration) {
     target_time = current_time + sleep_duration;
     while (current_time <= target_time)
         _lf_clock_now(&current_time);
-
-    return 0;
 }
 
 /**
- * Make the STM32 go honk shoo honk shoo for set nanoseconds
- * This one uses a do-while loop. :)
- * I essentially stole this from the lf_nrf52 support
+ * Blocks the STM32 for set nanoseconds
  */
 static void lf_busy_wait_until(instant_t wakeup_time) {
     instant_t now;
@@ -119,11 +105,9 @@ static void lf_busy_wait_until(instant_t wakeup_time) {
     } while (now < wakeup_time);
 }
 
-// I am pretty sure this function doesnt work
-//      Ill try to fix it once i know what the fuck its supposed to do, LOL
+
 /*  sleep until wakeup time
     But, wake up if there is an async event
-
 */
 int _lf_interruptable_sleep_until_locked(environment_t *env, instant_t wakeup_time) {
     // Get the current time and sleep time
@@ -155,8 +139,7 @@ int _lf_interruptable_sleep_until_locked(environment_t *env, instant_t wakeup_ti
     if (!_lf_async_event) {
         return 0;
     } else {
-        LF_PRINT_DEBUG(" *The STM32 rises from sleep* \n");
-        return -1;
+        return 1;
     }
 
 }
@@ -199,25 +182,19 @@ int _lf_single_threaded_notify_of_event() {
     return 0;
 }
 
-int test_func(void) {
-    return 5;
-}
-
 //  + -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- +
-//  | Other functions I found -> taken from the generated main.c
+//  | Other functions -> taken from the generated main.c
 //  + -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- +
 void lf_SystemClock_Config(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-    /** Configure the main internal regulator output voltage
-     */
+    // Configure the main internal regulator output voltage
     __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
-    /** Initializes the RCC Oscillators according to the specified parameters
-     * in the RCC_OscInitTypeDef structure.
-     */
+    // Initializes the RCC Oscillators according to the specified parameters
+    // in the RCC_OscInitTypeDef structure.
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
     RCC_OscInitStruct.HSIState = RCC_HSI_ON;
     RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -226,8 +203,7 @@ void lf_SystemClock_Config(void) {
         Error_Handler();
     }
 
-    /** Initializes the CPU, AHB and APB buses clocks
-     */
+    // Initializes the CPU, AHB and APB buses clocks
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
@@ -240,12 +216,12 @@ void lf_SystemClock_Config(void) {
 }
 
 void Error_Handler(void) {
-    /* USER CODE BEGIN Error_Handler_Debug */
-    /* User can add his own implementation to report the HAL error return state */
+    // USER CODE BEGIN Error_Handler_Debug
+    // User can add his own implementation to report the HAL error return state
     __disable_irq();
     while (1) {
     }
-    /* USER CODE END Error_Handler_Debug */
+    // USER CODE END Error_Handler_Debug
 }
 
 #endif

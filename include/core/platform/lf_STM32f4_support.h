@@ -17,7 +17,7 @@
 #define _LF_TIMEOUT 1
 
 #ifdef LF_THREADED
-#error "I have no idea how to support threading"
+#error "Threading is not supported on this architecture."
 #endif // LF_THREADED
 
 #endif
