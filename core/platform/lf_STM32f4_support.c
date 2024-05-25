@@ -18,6 +18,8 @@ static uint32_t _lf_num_nested_crit_sec = 0;
 // Timer upper half (for overflow)
 static uint32_t _lf_time_us_high = 0;
 
+#define LF_MIN_SLEEP_NS 10
+
 // Combine 2 32bit works to a 64 bit word (Takes from nrf52 support)
 #define COMBINE_HI_LO(hi, lo) ((((uint64_t)hi) << 32) | ((uint64_t)lo))
 
@@ -84,8 +86,10 @@ int _lf_clock_now(instant_t *t)
 
 /**
  * Blocks the STM32 for set nanoseconds
+ *      This implements a known function that is used in other 
+ *      parts of LF so it has to return int
  */
-void lf_sleep(interval_t sleep_duration) {
+int lf_sleep(interval_t sleep_duration) {
     instant_t target_time;
     instant_t current_time;
 
@@ -93,6 +97,8 @@ void lf_sleep(interval_t sleep_duration) {
     target_time = current_time + sleep_duration;
     while (current_time <= target_time)
         _lf_clock_now(&current_time);
+    
+    return 0;
 }
 
 /**
@@ -118,7 +124,7 @@ int _lf_interruptable_sleep_until_locked(environment_t *env, instant_t wakeup_ti
     // Edge case handling for super small duration
     if (duration <= 0) {
         return 0;
-    } else if (duration < 10) {
+    } else if (duration < LF_MIN_SLEEP_NS) {
         lf_busy_wait_until(wakeup_time);
         return 0;
     }
