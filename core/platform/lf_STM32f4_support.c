@@ -35,7 +35,7 @@ void Error_Handler();
 //  | Code for timer functions
 //  + -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- +
 
-// We use timer 5 for our clock (probably better than fucking with sysTick)
+// We use timer 5 for our clock (probably better than dealing with sysTick)
 void _lf_initialize_clock(void) {
     // Standard initializations from generated code
     HAL_Init();
