@@ -179,7 +179,7 @@ int lf_disable_interrupts_nested() {
 
 // enables the IRQ (checks if other programs still want it disabled first)
 int lf_enable_interrupts_nested() {
-    // Somebody fucked up, LOL
+    // Left the critical section more often than it was entered.
     if (_lf_num_nested_crit_sec <= 0) {
         return 1;
     }
