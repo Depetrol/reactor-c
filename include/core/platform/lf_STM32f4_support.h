@@ -3,7 +3,7 @@
 #ifndef LF_STM32F4_SUPPORT_H
 #define LF_STM32F4_SUPPORT_H
 
-// I have no idea what the fuck TTY is so i guess we dont support it
+// No support for a terminal to print to.
 #define NO_TTY
 
 #include <stm32f4xx_hal.h>
